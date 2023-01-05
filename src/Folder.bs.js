@@ -4,8 +4,8 @@ import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
 import * as Belt_Array from "rescript/lib/es6/belt_Array.js";
 import * as Belt_Option from "rescript/lib/es6/belt_Option.js";
-import * as Caml_module from "rescript/lib/es6/caml_module.js";
 import * as Caml_option from "rescript/lib/es6/caml_option.js";
+import * as JsxRuntime from "react/jsx-runtime";
 
 function createNewFolder(name, id) {
   return {
@@ -48,75 +48,43 @@ function addFolderToRoot(rootFolder, targetFolderId, name, id) {
   }
 }
 
-var Component = Caml_module.init_mod([
-      "Folder.res",
-      60,
-      4
-    ], {
-      TAG: /* Module */0,
-      _0: [
-        [
-          /* Function */0,
-          "make"
-        ],
-        [
-          /* Function */0,
-          "makeProps"
-        ]
-      ]
-    });
-
-function Folder$Component(Props) {
-  var currentFolder = Props.currentFolder;
-  var handleClick = Props.handleClick;
-  var recLevel = Props.recLevel;
+function make(param) {
+  var recLevel = param.recLevel;
+  var handleClick = param.handleClick;
+  var currentFolder = param.currentFolder;
   var match = React.useState(function () {
         return false;
       });
   var setOpen = match[1];
-  return React.createElement("div", {
+  return JsxRuntime.jsxs("div", {
+              children: [
+                JsxRuntime.jsx("div", {
+                      children: currentFolder.name,
+                      role: "button",
+                      onClick: (function (param) {
+                          Curry._1(setOpen, (function (prev) {
+                                  return !prev;
+                                }));
+                          Curry._1(handleClick, currentFolder.id);
+                        })
+                    }),
+                match[0] ? Belt_Array.map(currentFolder.folders, (function (folder) {
+                          return JsxRuntime.jsx(Component.make, {
+                                      currentFolder: folder,
+                                      handleClick: handleClick,
+                                      recLevel: recLevel + 1 | 0
+                                    });
+                        })) : JsxRuntime.jsx(JsxRuntime.Fragment, {})
+              ],
               style: {
                 marginLeft: String((recLevel << 5)) + "px"
               }
-            }, React.createElement("div", {
-                  role: "button",
-                  onClick: (function (param) {
-                      Curry._1(setOpen, (function (prev) {
-                              return !prev;
-                            }));
-                      Curry._1(handleClick, currentFolder.id);
-                    })
-                }, currentFolder.name), match[0] ? Belt_Array.map(currentFolder.folders, (function (folder) {
-                      return React.createElement(Component.make, Curry._5(Component.makeProps, folder, handleClick, recLevel + 1 | 0, undefined, undefined));
-                    })) : React.createElement(React.Fragment, undefined));
+            });
 }
 
-Caml_module.update_mod({
-      TAG: /* Module */0,
-      _0: [
-        [
-          /* Function */0,
-          "make"
-        ],
-        [
-          /* Function */0,
-          "makeProps"
-        ]
-      ]
-    }, Component, {
-      make: Folder$Component,
-      makeProps: (function (prim0, prim1, prim2, prim3, prim4) {
-          var tmp = {
-            currentFolder: prim0,
-            handleClick: prim1,
-            recLevel: prim2
-          };
-          if (prim3 !== undefined) {
-            tmp.key = prim3;
-          }
-          return tmp;
-        })
-    });
+var Component = {
+  make: make
+};
 
 export {
   createNewFolder ,
@@ -125,4 +93,4 @@ export {
   addFolderToRoot ,
   Component ,
 }
-/* Component Not a pure module */
+/* react Not a pure module */

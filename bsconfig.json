@@ -13,7 +13,7 @@
     }
   ],
   "suffix": ".bs.js",
-  "reason": { "react-jsx": 3 },
+  "jsx": {"version": 4, "mode": "automatic"},
   "bs-dependencies": ["@rescript/react"],
   "gentypeconfig": {
     "language": "typescript",
