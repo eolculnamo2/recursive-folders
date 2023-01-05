@@ -4,6 +4,7 @@ import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
 import * as Folder from "./Folder.bs.js";
 import * as Js_math from "rescript/lib/es6/js_math.js";
+import * as JsxRuntime from "react/jsx-runtime";
 
 import './App.css'
 ;
@@ -64,36 +65,56 @@ function reducer(state, action) {
   }
 }
 
-function App(Props) {
+function App(props) {
   var match = React.useReducer(reducer, initState);
   var dispatch = match[1];
   var state = match[0];
   var folderSelectedString = String(state.currentFolderId);
-  return React.createElement("div", {
+  return JsxRuntime.jsxs("div", {
+              children: [
+                JsxRuntime.jsx("div", {
+                      children: "Folder selected: " + folderSelectedString
+                    }),
+                JsxRuntime.jsxs("div", {
+                      children: [
+                        JsxRuntime.jsx("label", {
+                              children: "New folder name"
+                            }),
+                        JsxRuntime.jsx("input", {
+                              value: state.newFolderValue,
+                              onChange: (function (e) {
+                                  var updatedValue = e.currentTarget.value;
+                                  Curry._1(dispatch, {
+                                        TAG: /* FolderInputUpdated */0,
+                                        _0: updatedValue
+                                      });
+                                })
+                            }),
+                        JsxRuntime.jsx("button", {
+                              children: "Add Folder",
+                              type: "button",
+                              onClick: (function (param) {
+                                  Curry._1(dispatch, {
+                                        TAG: /* FolderAdded */2,
+                                        _0: Js_math.random_int(0, 100000)
+                                      });
+                                })
+                            })
+                      ]
+                    }),
+                JsxRuntime.jsx(Folder.Component.make, {
+                      currentFolder: state.rootFolder,
+                      handleClick: (function (id) {
+                          Curry._1(dispatch, {
+                                TAG: /* FolderSelected */3,
+                                _0: id
+                              });
+                        }),
+                      recLevel: 1
+                    })
+              ],
               className: "App"
-            }, React.createElement("div", undefined, "Folder selected: " + folderSelectedString), React.createElement("div", undefined, React.createElement("label", undefined, "New folder name"), React.createElement("input", {
-                      value: state.newFolderValue,
-                      onChange: (function (e) {
-                          var updatedValue = e.currentTarget.value;
-                          Curry._1(dispatch, {
-                                TAG: /* FolderInputUpdated */0,
-                                _0: updatedValue
-                              });
-                        })
-                    }), React.createElement("button", {
-                      type: "button",
-                      onClick: (function (param) {
-                          Curry._1(dispatch, {
-                                TAG: /* FolderAdded */2,
-                                _0: Js_math.random_int(0, 100000)
-                              });
-                        })
-                    }, "Add Folder")), React.createElement(Folder.Component.make, Curry._5(Folder.Component.makeProps, state.rootFolder, (function (id) {
-                        Curry._1(dispatch, {
-                              TAG: /* FolderSelected */3,
-                              _0: id
-                            });
-                      }), 1, undefined, undefined)));
+            });
 }
 
 var make = App;

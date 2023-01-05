@@ -48,18 +48,12 @@ let addFolderToRoot = (rootFolder: t, targetFolderId: int, name: string, id: int
   }
 }
 
+type componentProps = {currentFolder: t, handleClick: int => unit, recLevel: int}
+
 module rec Component: {
-  let make: {"currentFolder": t, "handleClick": int => unit, "recLevel": int} => React.element
-  let makeProps: (
-    ~currentFolder: t,
-    ~handleClick: int => unit,
-    ~recLevel: int,
-    ~key: string=?,
-    unit,
-  ) => {"currentFolder": t, "handleClick": int => unit, "recLevel": int}
+  let make: componentProps => Jsx.element
 } = {
-  @react.component
-  let make = (~currentFolder, ~handleClick, ~recLevel) => {
+  let make = ({currentFolder, handleClick, recLevel}) => {
     let (isOpen, setOpen) = React.useState(_ => false)
     <div style={ReactDOM.Style.make(~marginLeft=(recLevel * 32)->Belt.Int.toString ++ "px", ())}>
       <div
