@@ -1,0 +1,43 @@
+.outer-modal { 
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  background: rgba(0,0,0,.5);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+}
+
+.inner-modal {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 6px;
+  min-width: 100px;
+  min-height: 100px;
+  max-width: 800px;
+  max-height: 800px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+button {
+  padding: .25em .5em;
+}
+
+.save {
+  background: #a7ff9c;
+}
+
+.cancel {
+  background: #ff7066;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+}

@@ -2,12 +2,10 @@
 
 import * as Curry from "rescript/lib/es6/curry.js";
 import * as React from "react";
-import * as Folder from "./Folder.bs.js";
+import * as Folder from "./components/Folder/Folder.bs.js";
 import * as Js_math from "rescript/lib/es6/js_math.js";
+import * as AddFolderModal from "./components/AddFolderModal/AddFolderModal.bs.js";
 import * as JsxRuntime from "react/jsx-runtime";
-
-import './App.css'
-;
 
 var initState_rootFolder = {
   id: 0,
@@ -20,17 +18,33 @@ var initState = {
   rootFolder: initState_rootFolder,
   newFolderValue: "",
   newFileValue: "",
-  currentFolderId: 0
+  currentFolderId: 0,
+  modalFolderId: undefined
 };
 
 function reducer(state, action) {
   if (typeof action === "number") {
-    return {
-            rootFolder: state.rootFolder,
-            newFolderValue: state.newFolderValue,
-            newFileValue: "",
-            currentFolderId: state.currentFolderId
-          };
+    if (action === /* FileAdded */0) {
+      if (state.newFileValue.trim().length > 0) {
+        return {
+                rootFolder: Folder.addFileToFolder(state.rootFolder, state.currentFolderId, state.newFileValue),
+                newFolderValue: state.newFolderValue,
+                newFileValue: "",
+                currentFolderId: state.currentFolderId,
+                modalFolderId: undefined
+              };
+      } else {
+        return state;
+      }
+    } else {
+      return {
+              rootFolder: state.rootFolder,
+              newFolderValue: state.newFolderValue,
+              newFileValue: state.newFileValue,
+              currentFolderId: state.currentFolderId,
+              modalFolderId: undefined
+            };
+    }
   }
   switch (action.TAG | 0) {
     case /* FolderInputUpdated */0 :
@@ -38,28 +52,44 @@ function reducer(state, action) {
                 rootFolder: state.rootFolder,
                 newFolderValue: action._0,
                 newFileValue: state.newFileValue,
-                currentFolderId: state.currentFolderId
+                currentFolderId: state.currentFolderId,
+                modalFolderId: state.modalFolderId
               };
     case /* FileValueUpdated */1 :
         return {
                 rootFolder: state.rootFolder,
                 newFolderValue: state.newFolderValue,
                 newFileValue: action._0,
-                currentFolderId: state.currentFolderId
+                currentFolderId: state.currentFolderId,
+                modalFolderId: state.modalFolderId
               };
     case /* FolderAdded */2 :
-        return {
-                rootFolder: Folder.addFolderToRoot(state.rootFolder, state.currentFolderId, state.newFolderValue, action._0),
-                newFolderValue: "",
-                newFileValue: state.newFileValue,
-                currentFolderId: state.currentFolderId
-              };
+        if (state.newFolderValue.trim().length > 0) {
+          return {
+                  rootFolder: Folder.addFolderToRoot(state.rootFolder, state.currentFolderId, state.newFolderValue, action._0),
+                  newFolderValue: "",
+                  newFileValue: state.newFileValue,
+                  currentFolderId: state.currentFolderId,
+                  modalFolderId: undefined
+                };
+        } else {
+          return state;
+        }
     case /* FolderSelected */3 :
         return {
                 rootFolder: state.rootFolder,
                 newFolderValue: state.newFolderValue,
                 newFileValue: state.newFileValue,
-                currentFolderId: action._0
+                currentFolderId: action._0,
+                modalFolderId: state.modalFolderId
+              };
+    case /* ModalOpened */4 :
+        return {
+                rootFolder: state.rootFolder,
+                newFolderValue: state.newFolderValue,
+                newFileValue: state.newFileValue,
+                currentFolderId: state.currentFolderId,
+                modalFolderId: action._0
               };
     
   }
@@ -69,40 +99,45 @@ function App(props) {
   var match = React.useReducer(reducer, initState);
   var dispatch = match[1];
   var state = match[0];
-  var folderSelectedString = String(state.currentFolderId);
+  console.log(state.rootFolder);
+  var match$1 = state.modalFolderId;
   return JsxRuntime.jsxs("div", {
               children: [
-                JsxRuntime.jsx("div", {
-                      children: "Folder selected: " + folderSelectedString
-                    }),
-                JsxRuntime.jsxs("div", {
-                      children: [
-                        JsxRuntime.jsx("label", {
-                              children: "New folder name"
-                            }),
-                        JsxRuntime.jsx("input", {
-                              value: state.newFolderValue,
-                              onChange: (function (e) {
-                                  var updatedValue = e.currentTarget.value;
-                                  Curry._1(dispatch, {
-                                        TAG: /* FolderInputUpdated */0,
-                                        _0: updatedValue
-                                      });
-                                })
-                            }),
-                        JsxRuntime.jsx("button", {
-                              children: "Add Folder",
-                              type: "button",
-                              onClick: (function (param) {
-                                  Curry._1(dispatch, {
-                                        TAG: /* FolderAdded */2,
-                                        _0: Js_math.random_int(0, 100000)
-                                      });
-                                })
-                            })
-                      ]
-                    }),
+                match$1 !== undefined ? JsxRuntime.jsx(AddFolderModal.make, {
+                        onFolderChange: (function (e) {
+                            Curry._1(dispatch, {
+                                  TAG: /* FolderInputUpdated */0,
+                                  _0: e.target.value
+                                });
+                          }),
+                        folderValue: state.newFolderValue,
+                        handleFolderSave: (function (param) {
+                            Curry._1(dispatch, {
+                                  TAG: /* FolderAdded */2,
+                                  _0: Js_math.random_int(1, 100000)
+                                });
+                          }),
+                        handleClose: (function (param) {
+                            Curry._1(dispatch, /* ModalClosed */1);
+                          }),
+                        onFileChange: (function (e) {
+                            Curry._1(dispatch, {
+                                  TAG: /* FileValueUpdated */1,
+                                  _0: e.target.value
+                                });
+                          }),
+                        fileValue: state.newFileValue,
+                        handleFileSave: (function (param) {
+                            Curry._1(dispatch, /* FileAdded */0);
+                          })
+                      }) : JsxRuntime.jsx(JsxRuntime.Fragment, {}),
                 JsxRuntime.jsx(Folder.Component.make, {
+                      onDoubleClick: (function (id) {
+                          Curry._1(dispatch, {
+                                TAG: /* ModalOpened */4,
+                                _0: id
+                              });
+                        }),
                       currentFolder: state.rootFolder,
                       handleClick: (function (id) {
                           Curry._1(dispatch, {
@@ -124,4 +159,4 @@ export {
   reducer ,
   make ,
 }
-/*  Not a pure module */
+/* react Not a pure module */

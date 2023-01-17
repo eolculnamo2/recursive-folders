@@ -1,0 +1,15 @@
+.folder-name {
+  background-color: tan;
+}
+
+.folder-wrap span {
+  margin-left: 6px;
+  display: block;
+  font-size: 12px;
+  transition: all .3s;
+}
+
+.flex-folder-name-inner {
+  display: flex;
+  align-items: center;
+}

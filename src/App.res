@@ -1,11 +1,11 @@
 // import raw for just importing a css file
-%%raw("import './App.css'")
 
 type state = {
   rootFolder: Folder.t,
   newFolderValue: string,
   newFileValue: string,
   currentFolderId: int,
+  modalFolderId: option<int>,
 }
 
 let initState = {
@@ -18,6 +18,7 @@ let initState = {
   newFolderValue: "",
   newFileValue: "",
   currentFolderId: 0,
+  modalFolderId: None,
 }
 
 type actions =
@@ -26,50 +27,78 @@ type actions =
   | FolderAdded(int)
   | FileAdded
   | FolderSelected(int)
+  | ModalOpened(int)
+  | ModalClosed
 
 let reducer = (state, action) => {
   switch action {
   | FolderInputUpdated(value) => {...state, newFolderValue: value}
   | FileValueUpdated(value) => {...state, newFileValue: value}
-  | FolderAdded(id) => {
-      ...state,
-      newFolderValue: "",
-      rootFolder: Folder.addFolderToRoot(
-        state.rootFolder,
-        state.currentFolderId,
-        state.newFolderValue,
-        id,
-      ),
+  | FolderAdded(id) =>
+    if state.newFolderValue->Js.String2.trim->Js.String2.length > 0 {
+      {
+        ...state,
+        newFolderValue: "",
+        modalFolderId: None,
+        rootFolder: Folder.addFolderToRoot(
+          state.rootFolder,
+          state.currentFolderId,
+          state.newFolderValue,
+          id,
+        ),
+      }
+    } else {
+      state
     }
-  | FileAdded => {...state, newFileValue: ""}
+  | FileAdded =>
+    if state.newFileValue->Js.String2.trim->Js.String2.length > 0 {
+      {
+        ...state,
+        newFileValue: "",
+        modalFolderId: None,
+        rootFolder: Folder.addFileToFolder(
+          state.rootFolder,
+          state.currentFolderId,
+          state.newFileValue,
+        ),
+      }
+    } else {
+      state
+    }
+
   | FolderSelected(id) => {...state, currentFolderId: id}
+  | ModalOpened(id) => {...state, modalFolderId: Some(id)}
+  | ModalClosed => {...state, modalFolderId: None}
   }
 }
 
 @react.component @genType
 let make = () => {
   let (state, dispatch) = React.useReducer(reducer, initState)
-  let folderSelectedString = state.currentFolderId->Belt.Int.toString
+  Js.log(state.rootFolder)
   <div className="App">
-    <div> {React.string("Folder selected: " ++ folderSelectedString)} </div>
-    <div>
-      <label> {"New folder name"->React.string} </label>
-      <input
-        value={state.newFolderValue}
-        onChange={e => {
-          let updatedValue = ReactEvent.Form.currentTarget(e)["value"]
-          updatedValue->FolderInputUpdated->dispatch
+    {switch state.modalFolderId {
+    | None => <> </>
+    | Some(_) =>
+      <AddFolderModal
+        folderValue=state.newFolderValue
+        onFolderChange={e => {
+          ReactEvent.Form.target(e)["value"]->FolderInputUpdated->dispatch
         }}
+        handleFolderSave={_ => Js.Math.random_int(1, 100000)->FolderAdded->dispatch}
+        handleClose={_ => dispatch(ModalClosed)}
+        fileValue=state.newFileValue
+        onFileChange={e => {
+          ReactEvent.Form.target(e)["value"]->FileValueUpdated->dispatch
+        }}
+        handleFileSave={_ => dispatch(FileAdded)}
       />
-      <button type_="button" onClick={_ => Js.Math.random_int(0, 100000)->FolderAdded->dispatch}>
-        {"Add Folder"->React.string}
-      </button>
-    </div>
-    /* {state.rootFolder.folders */
-    /* ->Belt.Array.map(folder => <div> {folder.name->React.string} </div>) */
-    /* ->React.array} */
+    }}
     <Folder.Component
-      recLevel=1 currentFolder={state.rootFolder} handleClick={id => id->FolderSelected->dispatch}
+      onDoubleClick={id => id->ModalOpened->dispatch}
+      recLevel=1
+      currentFolder={state.rootFolder}
+      handleClick={id => id->FolderSelected->dispatch}
     />
   </div>
 }
